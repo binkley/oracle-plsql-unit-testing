@@ -1,5 +1,5 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
-  PROCEDURE punit_runner(package_name STRING);
+  PROCEDURE run_tests(package_name STRING);
   PROCEDURE assert_equals(expected INT, actual INT);
   FUNCTION Do_It(value INT)
     RETURN INT;
@@ -20,7 +20,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
       raise_application_error(-20101, 'Expected: ' || expected || '; got: ' || actual);
     END assert_equals;
 
-  PROCEDURE punit_runner(package_name STRING) IS
+  PROCEDURE run_tests(package_name STRING) IS
       passed INT := 0;
       failed INT := 0;
       errored INT := 0;
@@ -41,12 +41,11 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
             WHEN OTHERS THEN
               errored := errored + 1;
               dbms_output.put_line(proc.PROCEDURE_NAME || ' errored: '|| SQLERRM);
-              dbms_output.put_line(dbms_utility.format_error_stack());
-              dbms_output.put_line(dbms_utility.format_error_backtrace());
+              dbms_output.put_line(dbms_utility.format_call_stack());
             END;
           END LOOP;
           dbms_output.put_line('Summary: ' || passed || ' passed, ' || failed || ' failed, ' || errored || ' errored.');
-      END punit_runner;
+      END run_tests;
 
   FUNCTION Do_It(value INT)
     RETURN INT IS
@@ -72,6 +71,6 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 END PUNIT_TESTING;
 /
 BEGIN
-  PUNIT_TESTING.punit_runner('PUNIT_TESTING');
+  PUNIT_TESTING.run_tests('PUNIT_TESTING');
 END;
 /

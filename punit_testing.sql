@@ -36,7 +36,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
             WHEN OTHERS THEN
               errored := errored + 1;
               dbms_output.put_line(proc.PROCEDURE_NAME || ' errored: '|| SQLERRM);
-              dbms_output.put_line(dbms_utility.format_call_stack());
+              dbms_output.put_line(dbms_utility.FORMAT_ERROR_BACKTRACE());
             END;
           END LOOP;
           dbms_output.put_line('Summary: ' || passed || ' passed, ' || failed || ' failed, ' || errored || ' errored.');

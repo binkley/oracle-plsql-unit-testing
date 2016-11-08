@@ -1,0 +1,38 @@
+CREATE OR REPLACE PACKAGE PUNIT_TESTEE IS
+  FUNCTION Do_It(value INT)
+    RETURN INT;
+  PROCEDURE TEST_Pass;
+  PROCEDURE TEST_Fail;
+  PROCEDURE TEST_Error;
+END PUNIT_TESTEE;
+/
+CREATE OR REPLACE PACKAGE BODY PUNIT_TESTEE IS
+  FUNCTION Do_It(value INT)
+    RETURN INT IS
+    BEGIN
+      IF (3 = value) THEN
+        RAISE program_error;
+      END IF;
+      RETURN value;
+    END Do_It;
+
+  PROCEDURE TEST_Pass IS
+    BEGIN
+      PUNIT_TESTING.assert_equals(2, Do_It(2));
+    END TEST_Pass;
+
+  PROCEDURE TEST_Fail IS
+    BEGIN
+      PUNIT_TESTING.assert_equals(3, Do_It(2));
+    END TEST_Fail;
+
+  PROCEDURE TEST_Error IS
+    BEGIN
+      PUNIT_TESTING.assert_equals(3, Do_It(3));
+    END TEST_Error;
+END PUNIT_TESTEE;
+/
+BEGIN
+  PUNIT_TESTING.run_tests('PUNIT_TESTEE');
+END;
+/

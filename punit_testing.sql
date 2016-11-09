@@ -8,11 +8,25 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
   PRAGMA EXCEPTION_INIT(assertion_error, -20101);
 
   PROCEDURE assert_equals(expected INT, actual INT) IS
+      owner_name VARCHAR2(30);
+      caller_name VARCHAR2(30);
+      line_number NUMBER;
+      caller_type VARCHAR2(100);
+      source_line ALL_SOURCE.TEXT%TYPE;
     BEGIN
       IF (expected = actual) THEN
         RETURN;
       END IF;
-      raise_application_error(-20101, 'Expected: ' || expected || '; got: ' || actual);
+
+      OWA_UTIL.who_called_me(owner_name, caller_name, line_number, caller_type);
+      SELECT text
+        INTO source_line
+        FROM ALL_SOURCE
+        WHERE name = caller_name
+        AND type = 'PACKAGE BODY'
+        AND line = line_number;
+
+      raise_application_error(-20101, 'Expected: ' || expected || '; got: ' || actual || ' at ' || caller_name || '#l' || line_number || ': ' || trim(source_line));
     END assert_equals;
 
   PROCEDURE run_tests(package_name STRING) IS
@@ -32,36 +46,14 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
           EXCEPTION
             WHEN assertion_error THEN
               failed := failed + 1;
-              dbms_output.put_line(proc.PROCEDURE_NAME || ' failed: ' || SQLERRM);
+              dbms_output.put_line(proc.PROCEDURE_NAME || ' failed: '|| SQLERRM);
             WHEN OTHERS THEN
               errored := errored + 1;
               dbms_output.put_line(proc.PROCEDURE_NAME || ' errored: '|| SQLERRM);
               dbms_output.put_line(dbms_utility.FORMAT_ERROR_BACKTRACE());
-            END;
-          END LOOP;
-          dbms_output.put_line('Summary: ' || passed || ' passed, ' || failed || ' failed, ' || errored || ' errored.');
+          END;
+        END LOOP;
+        dbms_output.put_line('Summary: ' || passed || ' passed, ' || failed || ' failed, ' || errored || ' errored.');
       END run_tests;
-
-  FUNCTION Do_It(value INT)
-    RETURN INT IS
-    BEGIN
-      RETURN value;
-    END Do_It;
-
-  PROCEDURE TEST_Pass IS
-    BEGIN
-      assert_equals(2, Do_It(2));
-    END TEST_Pass;
-
-  PROCEDURE TEST_Fail IS
-    BEGIN
-      assert_equals(3, Do_It(2));
-    END TEST_Fail;
-
-  PROCEDURE TEST_Error IS
-    BEGIN
-      RAISE program_error;
-    END TEST_Error;
-
 END PUNIT_TESTING;
 /

@@ -16,7 +16,11 @@ construct a suitable message.
 Running tests finds and calls all procedures that start with `TEST_` in a
 given package, recording which pass (do not raise the custom exception), which
 fail (do raise the custom exception), and which error (raise any other
-exception).  At the end a summary is printed.
+exception).
+
+Failed assertions show the line of code which failed.  Errored tests print a
+backtrace (`DBMS_UTILITY.format_error_backtrace()`).  At the end a summary is
+printed.
 
 Unit tests should have no dependencies on each other, nor any implicit
 ordering.  They may be run in any order.
@@ -48,14 +52,14 @@ END;
 Example output from `PUNIT_TESTEE`:
 
 ```
-TEST_FAIL failed: ORA-20101: Expected: 3; got: 2
+Testing PUNIT_TESTEE.
+TEST_FAIL failed: ORA-20101: Expected: 3; got: 2 at PUNIT_TESTEE#l18: PUNIT_TESTING.assert_equals(3, Do_It(2));
 TEST_PASS passed.
 TEST_ERROR errored: ORA-06501: PL/SQL: program error
------ PL/SQL Call Stack -----
-  object      line  object
-  handle    number  name
-700000030e25988        34  package body SWMS.PUNIT_TESTING
-700000032d880a0         2  anonymous block
+ORA-06512: at "SWMS.PUNIT_TESTEE", line 6
+ORA-06512: at "SWMS.PUNIT_TESTEE", line 23
+ORA-06512: at line 1
+ORA-06512: at "SWMS.PUNIT_TESTING", line 39
 
 Summary: 1 passed, 1 failed, 1 errored.
 ```

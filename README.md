@@ -29,7 +29,7 @@ See [`punit_testee.sql`](punit_testee.sql) for a full example.
 
 Use like this:
 
-```
+```plsql
 -- In MY_PACKAGE
   PROCEDURE TEST_something IS
     BEGIN
@@ -39,7 +39,7 @@ Use like this:
 
 After writing unit tests in your production package, run them with:
 
-```
+```plsql
 BEGIN
   PUNIT_TESTING.run_tests('MY_PACKAGE');
 END;

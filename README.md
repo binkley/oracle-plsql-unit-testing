@@ -6,16 +6,20 @@ xUnit testing for Oracle PL/SQL
 
 Following the principle of the "least thing that could possibly work", this
 package provides exactly TWO procedures:
+
 - `PUNIT_TESTING.assert_equals(expected INT, actual INT)`
 - `PUNIT_TESTING.run_tests(package_name STRING)`
 
 Testing assertions raise a custom exception when they fail (code -20101), and
 construct a suitable message.
 
-Running tests finds all procedures in a package starting with `TEST_` and
-calls them, recording which pass (do not raise exception), which fail (raise
-the custom exception), and which error (raise any other exception).  At the
-end it prints a summary.
+Running tests finds and calls all procedures that start with `TEST_` in a
+given package, recording which pass (do not raise the custom exception), which
+fail (do raise the custom exception), and which error (raise any other
+exception).  At the end a summary is printed.
+
+Unit tests should have no dependencies on each other, nor any implicit
+ordering.  They may be run in any order.
 
 See [`punit_testing.sql`](punit_testing.sql) for this package.
 
@@ -26,14 +30,14 @@ See [`punit_testee.sql`](punit_testee.sql) for a full example.
 Use like this:
 
 ```
-MY_PACKAGE:
+-- In MY_PACKAGE
   PROCEDURE TEST_something IS
     BEGIN
         PUNIT_TESTING.assert_equals(3, some_function());
     END TEST_something;
 ```
 
-After including unit tests in your production package, run the tests with:
+After writing unit tests in your production package, run them with:
 
 ```
 BEGIN
@@ -41,7 +45,7 @@ BEGIN
 END;
 ```
 
-Example output:
+Example output from `PUNIT_TESTEE`:
 
 ```
 TEST_FAIL failed: ORA-20101: Expected: 3; got: 2

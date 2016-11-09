@@ -34,6 +34,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
       failed INT := 0;
       errored INT := 0;
     BEGIN
+      dbms_output.put_line('Testing ' || package_name || '.');
       FOR proc IN (SELECT procedure_name
           FROM all_procedures
           WHERE object_name = package_name

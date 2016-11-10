@@ -65,17 +65,17 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
           BEGIN
             EXECUTE IMMEDIATE 'BEGIN ' || package_name || '.' || proc.PROCEDURE_NAME || '; END;';
             passed := passed + 1;
-            dbms_output.put_line(unistr('\2611') || ' ' || proc.PROCEDURE_NAME || ' passed.');
+            dbms_output.put_line(unistr('\2713') || ' ' || proc.PROCEDURE_NAME || ' passed.');
           EXCEPTION
             WHEN disabled_test THEN
               skipped := skipped + 1;
-              dbms_output.put_line(unistr('?') || ' ' || proc.PROCEDURE_NAME || ' skipped: ' || SQLERRM);
+              dbms_output.put_line('- ' || proc.PROCEDURE_NAME || ' skipped: ' || SQLERRM);
             WHEN assertion_error THEN
               failed := failed + 1;
-              dbms_output.put_line(unistr('\2612') || ' ' || proc.PROCEDURE_NAME || ' failed: ' || SQLERRM);
+              dbms_output.put_line(unistr('\2717') || ' ' || proc.PROCEDURE_NAME || ' failed: ' || SQLERRM);
             WHEN OTHERS THEN
               errored := errored + 1;
-              dbms_output.put_line(unistr('\2613') || ' ' || proc.PROCEDURE_NAME || ' errored: ' || SQLERRM);
+              dbms_output.put_line('? ' || proc.PROCEDURE_NAME || ' errored: ' || SQLERRM);
               dbms_output.put_line(dbms_utility.FORMAT_ERROR_BACKTRACE());
           END;
         END LOOP;

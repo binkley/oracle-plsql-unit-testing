@@ -1,5 +1,5 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
-  PROCEDURE run_tests(package_name STRING);
+  PROCEDURE run_tests(package_name STRING, die_if_failed boolean DEFAULT true);
   PROCEDURE disable_test(reason string);
   PROCEDURE assert_equals(expected INT, actual INT);
 END PUNIT_TESTING;
@@ -47,14 +47,14 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
         RETURN to_char(diff / 100, 'FM990.00');
     END to_hundreds_of_second;
 
-  PROCEDURE run_tests(package_name string) IS
+  PROCEDURE run_tests(package_name string, die_if_failed boolean) IS
       start_time timestamp  := systimestamp;
+      testee VARCHAR2(61);
       run int := 0;
       passed int := 0;
       failed int := 0;
       errored int := 0;
       skipped int := 0;
-      message VARCHAR2(255);
     BEGIN
       DBMS_OUTPUT.put_line('Running ' || package_name);
       FOR p IN (SELECT procedure_name
@@ -63,29 +63,32 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
           AND procedure_name LIKE 'TEST_%')
         LOOP
           run := run + 1;
+          testee := package_name || '.' || p.procedure_name;
           BEGIN
-            EXECUTE IMMEDIATE 'BEGIN ' || package_name || '.' || p.procedure_name || '; END;';
+            EXECUTE IMMEDIATE 'BEGIN ' || testee || '; END;';
             passed := passed + 1;
-            DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || p.procedure_name || ' passed.');
+            DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || testee || ' passed.');
           EXCEPTION
             WHEN disabled_test THEN
               skipped := skipped + 1;
-              DBMS_OUTPUT.put_line('- ' || p.procedure_name || ' skipped: ' || SQLERRM);
+              DBMS_OUTPUT.put_line('- ' || testee || ' skipped: ' || SQLERRM);
             WHEN assertion_error THEN
+              IF (die_if_failed) THEN
+                RAISE;
+              END IF;
               failed := failed + 1;
-              DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || p.procedure_name || ' failed: ' || SQLERRM);
+              DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || testee || ' failed: ' || SQLERRM);
             WHEN OTHERS THEN
+              IF (die_if_failed) THEN
+                RAISE;
+              END IF;
               errored := errored + 1;
-              DBMS_OUTPUT.put_line('? ' || p.procedure_name || ' errored: ' || SQLERRM);
+              DBMS_OUTPUT.put_line('? ' || testee || ' errored: ' || SQLERRM);
               DBMS_OUTPUT.put_line(DBMS_UTILITY.format_error_backtrace());
           END;
         END LOOP;
 
-        message := 'Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name;
-        DBMS_OUTPUT.put_line(message);
-        IF (0 < failed OR 0 < errored) THEN
-          raise_application_error(-20101, message);
-        END IF;
+        DBMS_OUTPUT.put_line('Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
       END run_tests;
 END PUNIT_TESTING;
 /

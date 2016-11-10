@@ -54,6 +54,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
       failed int := 0;
       errored int := 0;
       skipped int := 0;
+      message VARCHAR2(255);
     BEGIN
       DBMS_OUTPUT.put_line('Running ' || package_name);
       FOR p IN (SELECT procedure_name
@@ -79,7 +80,12 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
               DBMS_OUTPUT.put_line(DBMS_UTILITY.format_error_backtrace());
           END;
         END LOOP;
-        DBMS_OUTPUT.put_line('Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
+
+        message := 'Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name;
+        DBMS_OUTPUT.put_line(message);
+        IF (0 < failed OR 0 < errored) THEN
+          raise_application_error(-20101, message);
+        END IF;
       END run_tests;
 END PUNIT_TESTING;
 /

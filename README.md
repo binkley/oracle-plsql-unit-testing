@@ -20,7 +20,7 @@ exception).
 
 Failed assertions show the line of code which failed.  Errored tests print a
 backtrace (`DBMS_UTILITY.format_error_backtrace()`).  At the end a summary is
-printed.
+printed in the style of maven tests.
 
 Unit tests should have no dependencies on each other, nor any implicit
 ordering.  They may be run in any order.
@@ -52,7 +52,7 @@ END;
 Example output from `PUNIT_TESTEE`:
 
 ```
-Testing PUNIT_TESTEE.
+Running PUNIT_TESTEE
 TEST_FAIL failed: ORA-20101: Expected: 3; got: 2 at PUNIT_TESTEE#l18: PUNIT_TESTING.assert_equals(3, Do_It(2));
 TEST_PASS passed.
 TEST_ERROR errored: ORA-06501: PL/SQL: program error
@@ -61,6 +61,5 @@ ORA-06512: at "SWMS.PUNIT_TESTEE", line 23
 ORA-06512: at line 1
 ORA-06512: at "SWMS.PUNIT_TESTING", line 39
 
-Summary: 1 passed, 1 failed, 1 errored.
+Tests run: 3, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.20 sec - in PUNIT_TESTEE
 ```
-

@@ -1,7 +1,7 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTEE IS
   FUNCTION Do_It(value INT)
     RETURN INT;
-  PROCEDURE TEST_Skip;
+  PROCEDURE Test_Skip; -- Example with mixed case working
   PROCEDURE TEST_Pass;
   PROCEDURE TEST_Fail;
   PROCEDURE TEST_Error;
@@ -17,12 +17,12 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTEE IS
       RETURN value;
     END Do_It;
 
-  PROCEDURE TEST_Skip IS
+  PROCEDURE Test_Skip IS
     BEGIN
       PUNIT_TESTING.disable_test('Example skipping a test');
 
       RAISE program_error; -- Should not reach here
-    END TEST_Skip;
+    END Test_Skip;
 
   PROCEDURE TEST_Pass IS
     BEGIN

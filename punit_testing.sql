@@ -55,31 +55,31 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
       errored int := 0;
       skipped int := 0;
     BEGIN
-      dbms_output.put_line('Running ' || package_name);
-      FOR proc IN (SELECT procedure_name
-          FROM all_procedures
+      DBMS_OUTPUT.put_line('Running ' || package_name);
+      FOR p IN (SELECT procedure_name
+          FROM ALL_PROCEDURES
           WHERE object_name = package_name
           AND procedure_name LIKE 'TEST_%')
         LOOP
           run := run + 1;
           BEGIN
-            EXECUTE IMMEDIATE 'BEGIN ' || package_name || '.' || proc.PROCEDURE_NAME || '; END;';
+            EXECUTE IMMEDIATE 'BEGIN ' || package_name || '.' || p.procedure_name || '; END;';
             passed := passed + 1;
-            dbms_output.put_line(unistr('\2713') || ' ' || proc.PROCEDURE_NAME || ' passed.');
+            DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || p.procedure_name || ' passed.');
           EXCEPTION
             WHEN disabled_test THEN
               skipped := skipped + 1;
-              dbms_output.put_line('- ' || proc.PROCEDURE_NAME || ' skipped: ' || SQLERRM);
+              DBMS_OUTPUT.put_line('- ' || p.procedure_name || ' skipped: ' || SQLERRM);
             WHEN assertion_error THEN
               failed := failed + 1;
-              dbms_output.put_line(unistr('\2717') || ' ' || proc.PROCEDURE_NAME || ' failed: ' || SQLERRM);
+              DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || p.procedure_name || ' failed: ' || SQLERRM);
             WHEN OTHERS THEN
               errored := errored + 1;
-              dbms_output.put_line('? ' || proc.PROCEDURE_NAME || ' errored: ' || SQLERRM);
-              dbms_output.put_line(dbms_utility.FORMAT_ERROR_BACKTRACE());
+              DBMS_OUTPUT.put_line('? ' || p.procedure_name || ' errored: ' || SQLERRM);
+              DBMS_OUTPUT.put_line(DBMS_UTILITY.format_error_backtrace());
           END;
         END LOOP;
-        dbms_output.put_line('Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
+        DBMS_OUTPUT.put_line('Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
       END run_tests;
 END PUNIT_TESTING;
 /

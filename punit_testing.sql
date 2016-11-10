@@ -1,11 +1,19 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
   PROCEDURE run_tests(package_name STRING);
+  PROCEDURE disable_test(reason string);
   PROCEDURE assert_equals(expected INT, actual INT);
 END PUNIT_TESTING;
 /
 CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
   assertion_error EXCEPTION;
   PRAGMA EXCEPTION_INIT(assertion_error, -20101);
+  disabled_test EXCEPTION;
+  PRAGMA EXCEPTION_INIT(disabled_test, -20102);
+
+  PROCEDURE disable_test(reason string) IS
+    BEGIN
+      raise_application_error(-20102, reason);
+    END disable_test;
 
   PROCEDURE assert_equals(expected INT, actual INT) IS
       owner_name VARCHAR2(30);
@@ -59,12 +67,15 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
             passed := passed + 1;
             dbms_output.put_line(unistr('\2611') || ' ' || proc.PROCEDURE_NAME || ' passed.');
           EXCEPTION
+            WHEN disabled_test THEN
+              skipped := skipped + 1;
+              dbms_output.put_line(unistr('?') || ' ' || proc.PROCEDURE_NAME || ' skipped: ' || SQLERRM);
             WHEN assertion_error THEN
               failed := failed + 1;
-              dbms_output.put_line(unistr('\2612') || ' ' || proc.PROCEDURE_NAME || ' failed: '|| SQLERRM);
+              dbms_output.put_line(unistr('\2612') || ' ' || proc.PROCEDURE_NAME || ' failed: ' || SQLERRM);
             WHEN OTHERS THEN
               errored := errored + 1;
-              dbms_output.put_line(unistr('\2613') || ' ' || proc.PROCEDURE_NAME || ' errored: '|| SQLERRM);
+              dbms_output.put_line(unistr('\2613') || ' ' || proc.PROCEDURE_NAME || ' errored: ' || SQLERRM);
               dbms_output.put_line(dbms_utility.FORMAT_ERROR_BACKTRACE());
           END;
         END LOOP;

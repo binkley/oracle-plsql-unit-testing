@@ -27,6 +27,21 @@ ordering.  They may be run in any order.
 
 See [`punit_testing.sql`](punit_testing.sql) for this package.
 
+### Variation
+
+There is a variation of `PUNIT_TESTING.run_tests(package_name STRING)`:
+
+- `PUNIT_TESTING.run_tests(package_name STRING, boolean die_if_failed DEFAULT true)`
+
+It is a workaround for Oracle discarding output if any part or subpart of a
+program does not complete normally.  Regular behavior of `run_tests` is to
+reraise any exception or test failure so that compilation of tested code
+fails.  This lets failing tests keep bad code out of the database.
+
+However, finding what tests failed is challenging.  In that case, set
+`die_if_failed` to `false` to see which test(s) failed.  An alternative
+approach would be appreciated.
+
 ## Usage
 
 See [`punit_testee.sql`](punit_testee.sql) for a full example.

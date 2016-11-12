@@ -2,6 +2,8 @@
 
 xUnit testing for Oracle PL/SQL
 
+This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
+
 ## What is it?
 
 Following the principle of the "least thing that could possibly work", this

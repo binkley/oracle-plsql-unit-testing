@@ -84,7 +84,8 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
               END IF;
               errored := errored + 1;
               DBMS_OUTPUT.put_line('? ' || testee || ' errored: ' || SQLERRM);
-              DBMS_OUTPUT.put_line(DBMS_UTILITY.format_error_backtrace());
+              -- Not put_line: backtrace already ends in a newline
+              DBMS_OUTPUT.put(DBMS_UTILITY.format_error_backtrace());
           END;
         END LOOP;
 

@@ -1,5 +1,5 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
-  PROCEDURE run_tests(package_name STRING, die_if_failed boolean DEFAULT true);
+  PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, die_if_failed boolean DEFAULT true);
   PROCEDURE disable_test(reason string);
   PROCEDURE assert_equals(expected INT, actual INT);
 END PUNIT_TESTING;
@@ -16,11 +16,11 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
     END disable_test;
 
   PROCEDURE assert_equals(expected INT, actual INT) IS
-      owner_name VARCHAR2(30);
-      caller_name VARCHAR2(30);
-      line_number NUMBER;
-      caller_type VARCHAR2(100);
-      source_line ALL_SOURCE.TEXT%TYPE;
+      owner_name ALL_OBJECTS.owner%TYPE;
+      caller_name ALL_SOURCE.name%TYPE;
+      line_number ALL_SOURCE.line%TYPE;
+      caller_type ALL_SOURCE.type%TYPE;
+      source_line ALL_SOURCE.text%TYPE;
     BEGIN
       IF (expected = actual) THEN
         RETURN;
@@ -47,7 +47,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
         RETURN to_char(diff / 100, 'FM990.00');
     END to_hundreds_of_second;
 
-  PROCEDURE run_tests(package_name string, die_if_failed boolean) IS
+  PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, die_if_failed boolean) IS
       start_time timestamp  := systimestamp;
       testee VARCHAR2(61);
       run int := 0;

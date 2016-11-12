@@ -31,10 +31,10 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
         INTO source_line
         FROM ALL_SOURCE
         WHERE name = caller_name
-        AND type = 'PACKAGE BODY'
+        AND type = caller_type
         AND line = line_number;
 
-      raise_application_error(-20101, 'Expected: ' || expected || '; got: ' || actual || ' at ' || caller_name || '#l' || line_number || ': ' || trim(source_line));
+      raise_application_error(-20101, 'Expected: ' || expected || '; got: ' || actual || ' at ' || caller_name || ', line ' || line_number || ': ' || trim(source_line));
     END assert_equals;
 
   FUNCTION to_hundreds_of_second(newer timestamp, older timestamp)

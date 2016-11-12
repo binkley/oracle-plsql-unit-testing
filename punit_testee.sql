@@ -41,6 +41,6 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTEE IS
 END PUNIT_TESTEE;
 /
 BEGIN
-  PUNIT_TESTING.run_tests('PUNIT_TESTEE', die_if_failed => false);
+  PUNIT_TESTING.run_tests('PUNIT_TESTEE', raise_on_fail => false);
 END;
 /

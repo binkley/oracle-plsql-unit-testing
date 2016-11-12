@@ -1,5 +1,5 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
-  PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, die_if_failed boolean DEFAULT true);
+  PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean DEFAULT true);
   PROCEDURE disable_test(reason string);
   PROCEDURE assert_equals(expected INT, actual INT);
 END PUNIT_TESTING;
@@ -47,7 +47,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
         RETURN to_char(diff / 100, 'FM990.00');
     END to_hundreds_of_second;
 
-  PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, die_if_failed boolean) IS
+  PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean) IS
       start_time timestamp  := systimestamp;
       testee VARCHAR2(61);
       run int := 0;
@@ -73,13 +73,13 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
               skipped := skipped + 1;
               DBMS_OUTPUT.put_line('- ' || testee || ' skipped: ' || SQLERRM);
             WHEN assertion_error THEN
-              IF (die_if_failed) THEN
+              IF (raise_on_fail) THEN
                 RAISE;
               END IF;
               failed := failed + 1;
               DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || testee || ' failed: ' || SQLERRM);
             WHEN OTHERS THEN
-              IF (die_if_failed) THEN
+              IF (raise_on_fail) THEN
                 RAISE;
               END IF;
               errored := errored + 1;

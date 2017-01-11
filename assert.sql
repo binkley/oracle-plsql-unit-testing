@@ -1,38 +1,38 @@
 CREATE OR REPLACE PACKAGE ASSERT IS
-    PROCEDURE assert_equals(expected VARCHAR2, actual VARCHAR2);
-    PROCEDURE assert_equals(expected INT, actual INT);
-    PROCEDURE assert_null(actual INT);
+    PROCEDURE equals(expected VARCHAR2, actual VARCHAR2);
+    PROCEDURE equals(expected INT, actual INT);
+    PROCEDURE is_null(actual INT);
 END ASSERT;
 /
 
 CREATE OR REPLACE PACKAGE BODY ASSERT IS
 
-    PROCEDURE assert_equals(expected INT, actual INT) IS
+    PROCEDURE equals(expected INT, actual INT) IS
     BEGIN
         IF (expected = actual) THEN
             RETURN;
         END IF;
 
         raise_application_error(-20101, 'expected: ' || expected || '; actual: ' || actual );
-    END assert_equals;
+    END equals;
     
-    PROCEDURE assert_equals(expected VARCHAR2, actual VARCHAR2) IS
+    PROCEDURE equals(expected VARCHAR2, actual VARCHAR2) IS
     BEGIN
         IF (expected = actual) THEN
             RETURN;
         END IF;
       
         raise_application_error(-20101, 'expected: ' || expected || '; actual: ' || actual );
-    END assert_equals;
+    END equals;
 
-    PROCEDURE assert_null(actual INT) IS 
+    PROCEDURE is_null(actual INT) IS 
     BEGIN
         IF (actual IS NULL) THEN
             RETURN;
         END IF;
 
         raise_application_error(-20101, 'expected: NULL; actual: ' || actual );
-    END assert_null;
+    END is_null;
 
 END ASSERT;
 /

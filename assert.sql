@@ -1,11 +1,11 @@
-CREATE OR REPLACE PACKAGE PUNIT_ASSERTS IS
+CREATE OR REPLACE PACKAGE ASSERT IS
     PROCEDURE assert_equals(expected VARCHAR2, actual VARCHAR2);
     PROCEDURE assert_equals(expected INT, actual INT);
     PROCEDURE assert_null(actual INT);
-END PUNIT_ASSERTS;
+END ASSERT;
 /
 
-CREATE OR REPLACE PACKAGE BODY PUNIT_ASSERTS IS
+CREATE OR REPLACE PACKAGE BODY ASSERT IS
 
     PROCEDURE assert_equals(expected INT, actual INT) IS
     BEGIN
@@ -34,5 +34,5 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_ASSERTS IS
         raise_application_error(-20101, 'expected: NULL; actual: ' || actual );
     END assert_null;
 
-END PUNIT_ASSERTS;
+END ASSERT;
 /

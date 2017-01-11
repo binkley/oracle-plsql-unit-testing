@@ -26,17 +26,17 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTEE IS
 
   PROCEDURE TEST_Pass IS
     BEGIN
-      PUNIT_TESTING.assert_equals(2, Do_It(2));
+      ASSERT.assert_equals(2, Do_It(2));
     END TEST_Pass;
 
   PROCEDURE TEST_Fail IS
     BEGIN
-      PUNIT_TESTING.assert_equals(3, Do_It(2));
+      ASSERT.assert_equals(3, Do_It(2));
     END TEST_Fail;
 
   PROCEDURE TEST_Error IS
     BEGIN
-      PUNIT_TESTING.assert_equals(3, Do_It(3));
+      ASSERT.assert_equals(3, Do_It(3));
     END TEST_Error;
 END PUNIT_TESTEE;
 /

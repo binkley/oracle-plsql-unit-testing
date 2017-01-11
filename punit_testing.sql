@@ -29,13 +29,20 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 		fixture_name ALL_PROCEDURES.procedure_name%TYPE;
 		fixture_procedure VARCHAR(100);
 	BEGIN
-		SELECT procedure_name INTO fixture_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name = fixture_type;
+		BEGIN
+			SELECT procedure_name INTO fixture_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name = fixture_type;
+		EXCEPTION
+		WHEN NO_DATA_FOUND THEN
+			RETURN;
+		END;
+
 		fixture_procedure := package_name || '.' || fixture_name;
 		DBMS_OUTPUT.put_line('Running ' || fixture_procedure);
 		BEGIN
 			EXECUTE IMMEDIATE 'BEGIN ' || fixture_procedure || '; END;';
 			DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || fixture_procedure || ' finished running.');
-		EXCEPTION WHEN OTHERS THEN
+		EXCEPTION 
+		WHEN OTHERS THEN
 			raise_application_error(-20103, fixture_type || ' failed to complete');
 		END;
 	END run_fixture;

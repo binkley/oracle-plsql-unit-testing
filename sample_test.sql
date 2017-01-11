@@ -3,6 +3,7 @@ CREATE OR REPLACE PACKAGE SAMPLE_TEST IS
     PROCEDURE teardown;
     PROCEDURE test_two_equals_two;
     PROCEDURE test_null_is_null;
+    PROCEDURE test_not_null_is_not_null;
 END SAMPLE_TEST;
 /
 
@@ -10,12 +11,12 @@ CREATE OR REPLACE PACKAGE BODY SAMPLE_TEST IS
 
     PROCEDURE setup IS
     BEGIN
-		DBMS_OUTPUT.put_line('setup got executed.');
+		DBMS_OUTPUT.put_line('SETUP got executed.');
     END setup;
 
     PROCEDURE teardown IS
     BEGIN
-		DBMS_OUTPUT.put_line('teardown got executed.');
+		DBMS_OUTPUT.put_line('TEARDOWN got executed.');
     END teardown;
 
     PROCEDURE test_two_equals_two IS
@@ -24,9 +25,15 @@ CREATE OR REPLACE PACKAGE BODY SAMPLE_TEST IS
     END test_two_equals_two;
 
     PROCEDURE test_null_is_null IS
+        null_varchar VARCHAR2(10) := NULL;
     BEGIN
-        ASSERT.is_null(NULL);
+        ASSERT.is_null(null_varchar);
     END test_null_is_null;
+
+    PROCEDURE test_not_null_is_not_null IS
+    BEGIN
+        ASSERT.is_not_null('not null');
+    END test_not_null_is_not_null;
 
 END SAMPLE_TEST;
 /

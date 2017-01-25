@@ -13,7 +13,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
     PRAGMA EXCEPTION_INIT(fixture_exception, -20103);
 
     PROCEDURE disable_test(reason string) IS
-	BEGIN
+	  BEGIN
         raise_application_error(-20102, reason);
     END disable_test;
 
@@ -21,7 +21,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 		diff NUMBER;
     BEGIN
       	SELECT (extract(second from newer) - extract(second from older)) * 1000 ms INTO diff FROM DUAL;
-      
+
       	RETURN to_char(diff / 100, 'FM990.00');
     END to_hundreds_of_second;
 
@@ -41,7 +41,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 		BEGIN
 			EXECUTE IMMEDIATE 'BEGIN ' || fixture_procedure || '; END;';
 			DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || fixture_procedure || ' finished running.');
-		EXCEPTION 
+		EXCEPTION
 		WHEN OTHERS THEN
 			raise_application_error(-20103, fixture_type || ' failed to complete');
 		END;

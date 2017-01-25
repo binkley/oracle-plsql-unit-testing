@@ -1,13 +1,15 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
 	TYPE suite IS TABLE OF ALL_OBJECTS.object_name%TYPE;
 
-    PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean DEFAULT true);
+	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean DEFAULT true);
 	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail boolean DEFAULT true);
     PROCEDURE disable_test(reason string);
 END PUNIT_TESTING;
 /
 
 CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
+	TYPE result_type IS TABLE OF INT INDEX BY VARCHAR2(15);
+
     assertion_error EXCEPTION;
     PRAGMA EXCEPTION_INIT(assertion_error, -20101);
     disabled_test EXCEPTION;
@@ -50,55 +52,96 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 		END;
 	END run_fixture;
 
-    PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean) IS
-      	start_time TIMESTAMP := systimestamp;
-      	testee VARCHAR2(61);
-      	run INT := 0;
-      	passed INT := 0;
-      	failed INT := 0;
-      	errored INT := 0;
-      	skipped INT := 0;
+	PROCEDURE print_results(results result_type) IS
+	BEGIN
+		DBMS_OUTPUT.put_line(chr(13));	
+		DBMS_OUTPUT.put_line('Tests Run: ' || results('run') || ', '
+								|| 'Failures: ' || results('failed') || ', '
+								|| 'Errors: ' || results('errored') || ', '
+								|| 'Skipped: ' || results('skipped'));
+	END print_results;
+
+    FUNCTION run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean) RETURN result_type IS
+		results result_type;
+
+		start_time TIMESTAMP := systimestamp;
+		testee VARCHAR2(61);
     BEGIN
-	  	run_fixture(package_name, 'SETUP');
-      	DBMS_OUTPUT.put_line('Running ' || package_name);
-      	FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
-			run := run + 1;
+		results('run') := 0;
+		results('passed') := 0;
+		results('failed') := 0;
+		results('errored') := 0;
+		results('skipped') := 0;
+		
+		DBMS_OUTPUT.put_line(chr(13));
+		run_fixture(package_name, 'SETUP');
+
+		DBMS_OUTPUT.put_line('Running ' || package_name);
+		FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
+			results('run') := results('run') + 1;
 			testee := package_name || '.' || p.procedure_name;
 			BEGIN
 				EXECUTE IMMEDIATE 'BEGIN ' || testee || '; END;';
-      	    	passed := passed + 1;
-      	    	DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || testee || ' passed.');
-      	  	EXCEPTION
-      	    WHEN disabled_test THEN
-				skipped := skipped + 1;
-            	DBMS_OUTPUT.put_line('- ' || testee || ' skipped: ' || SQLERRM);
-          	WHEN assertion_error THEN
+				results('passed') := results('passed') + 1;
+				DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || testee || ' passed.');
+			EXCEPTION
+			WHEN disabled_test THEN
+				results('skipped') := results('skipped') + 1;
+				DBMS_OUTPUT.put_line('- ' || testee || ' skipped: ' || SQLERRM);
+			WHEN assertion_error THEN
 				IF (raise_on_fail) THEN
-              		RAISE;
-            	END IF;
-            	failed := failed + 1;
-            	DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || testee || ' failed: ' || SQLERRM);
-          	WHEN OTHERS THEN
-    			IF (raise_on_fail) THEN
 					RAISE;
-            	END IF;
-            	errored := errored + 1;
-            	DBMS_OUTPUT.put_line('? ' || testee || ' errored: ' || SQLERRM);
-            	-- Cannot use the superior UTL_CALL_STACK package: 12c vs 11c
-            	-- Not put_line: backtrace already ends in a newline
-            	DBMS_OUTPUT.put(DBMS_UTILITY.format_error_backtrace());
-        	END;
+				END IF;
+				results('failed') := results('failed') + 1;
+				DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || testee || ' failed: ' || SQLERRM);
+			WHEN OTHERS THEN
+				IF (raise_on_fail) THEN
+					RAISE;
+				END IF;
+				results('errored') := results('errored') + 1;
+				DBMS_OUTPUT.put_line('? ' || testee || ' errored: ' || SQLERRM);
+				-- Cannot use the superior UTL_CALL_STACK package: 12c vs 11c
+				-- Not put_line: backtrace already ends in a newline
+				DBMS_OUTPUT.put(DBMS_UTILITY.format_error_backtrace());
+			END;
 		END LOOP;
 		run_fixture(package_name, 'TEARDOWN');
+		
+		print_results(results);
+		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
 
-      	DBMS_OUTPUT.put_line('Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
+		RETURN results;
     END run_tests;
 
-	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail BOOLEAN) IS
+	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean) IS
+		test_results result_type;
 	BEGIN
+		test_results := run_tests(package_name, raise_on_fail);
+	END run_tests;
+
+	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail BOOLEAN) IS
+		suite_results result_type;
+		test_results result_type;
+
+		start_time TIMESTAMP := systimestamp;
+	BEGIN
+		suite_results('run') := 0;
+		suite_results('passed') := 0;
+		suite_results('failed') := 0;
+		suite_results('errored') := 0;
+		suite_results('skipped') := 0;
+
     	FOR i IN suite_of_tests.FIRST .. suite_of_tests.LAST LOOP
-			run_tests(suite_of_tests(i), raise_on_fail);
+			test_results := run_tests(suite_of_tests(i), raise_on_fail);
+			suite_results('run') := suite_results('run') + test_results('run');
+			suite_results('passed') := suite_results('passed') + test_results('passed');
+			suite_results('failed') := suite_results('failed') + test_results('failed');
+			suite_results('errored') := suite_results('errored') + test_results('errored');
+			suite_results('skipped') := suite_results('skipped') + test_results('skipped');
     	END LOOP;
+
+		print_results(suite_results);
+		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time));
 	END run_suite;
 
 END PUNIT_TESTING;

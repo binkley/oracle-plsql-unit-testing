@@ -1,5 +1,8 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
+	TYPE suite IS TABLE OF ALL_OBJECTS.object_name%TYPE;
+
     PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean DEFAULT true);
+	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail boolean DEFAULT true);
     PROCEDURE disable_test(reason string);
 END PUNIT_TESTING;
 /
@@ -13,7 +16,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
     PRAGMA EXCEPTION_INIT(fixture_exception, -20103);
 
     PROCEDURE disable_test(reason string) IS
-	  BEGIN
+	BEGIN
         raise_application_error(-20102, reason);
     END disable_test;
 
@@ -90,6 +93,13 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 
       	DBMS_OUTPUT.put_line('Tests run: ' || run || ', Failures: ' || failed || ', Errors: ' || errored || ', Skipped: ' || skipped || ', Time elapsed: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
     END run_tests;
+
+	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail BOOLEAN) IS
+	BEGIN
+    	FOR i IN suite_of_tests.FIRST .. suite_of_tests.LAST LOOP
+			run_tests(suite_of_tests(i), raise_on_fail);
+    	END LOOP;
+	END run_suite;
 
 END PUNIT_TESTING;
 /

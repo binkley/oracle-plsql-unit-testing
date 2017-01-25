@@ -1,8 +1,8 @@
 CREATE OR REPLACE PACKAGE PUNIT_TESTING IS
 	TYPE suite IS TABLE OF ALL_OBJECTS.object_name%TYPE;
 
-	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean DEFAULT true);
-	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail boolean DEFAULT true);
+	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail BOOLEAN DEFAULT true);
+	PROCEDURE run_suite(suite_of_tests in suite, raise_on_fail BOOLEAN DEFAULT true);
     PROCEDURE disable_test(reason string);
 END PUNIT_TESTING;
 /
@@ -52,16 +52,21 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 		END;
 	END run_fixture;
 
-	PROCEDURE print_results(results result_type) IS
+	PROCEDURE print_results(results result_type, is_suite BOOLEAN) IS
 	BEGIN
-		DBMS_OUTPUT.put_line(chr(13));	
+		DBMS_OUTPUT.put_line(chr(13));
+		IF is_suite THEN
+			DBMS_OUTPUT.put_line('Suite Results');
+			DBMS_OUTPUT.put_line('--------------------------------------------------------');
+		END IF;
 		DBMS_OUTPUT.put_line('Tests Run: ' || results('run') || ', '
+								|| 'Passed: ' || results('passed') || ', '
 								|| 'Failures: ' || results('failed') || ', '
 								|| 'Errors: ' || results('errored') || ', '
 								|| 'Skipped: ' || results('skipped'));
 	END print_results;
 
-    FUNCTION run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean) RETURN result_type IS
+    FUNCTION run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail BOOLEAN) RETURN result_type IS
 		results result_type;
 
 		start_time TIMESTAMP := systimestamp;
@@ -107,13 +112,13 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 		END LOOP;
 		run_fixture(package_name, 'TEARDOWN');
 		
-		print_results(results);
+		print_results(results, false);
 		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
 
 		RETURN results;
     END run_tests;
 
-	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail boolean) IS
+	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail BOOLEAN) IS
 		test_results result_type;
 	BEGIN
 		test_results := run_tests(package_name, raise_on_fail);
@@ -140,7 +145,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTING IS
 			suite_results('skipped') := suite_results('skipped') + test_results('skipped');
     	END LOOP;
 
-		print_results(suite_results);
+		print_results(suite_results, true);
 		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time));
 	END run_suite;
 

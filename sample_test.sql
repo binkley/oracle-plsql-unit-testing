@@ -39,6 +39,6 @@ END SAMPLE_TEST;
 /
 
 BEGIN
-    PUNIT_TESTING.run_tests('SAMPLE_TEST', raise_on_fail => false);
+    PUNIT_RUNNER.run_tests('SAMPLE_TEST', raise_on_fail => false);
 END;
 /

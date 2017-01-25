@@ -19,7 +19,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTEE IS
 
   PROCEDURE Test_Skip IS
     BEGIN
-      PUNIT_TESTING.disable_test('Example skipping a test');
+      PUNIT_TEST.disable_test('Example skipping a test');
 
       RAISE program_error; -- Should not reach here
     END Test_Skip;
@@ -41,6 +41,6 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TESTEE IS
 END PUNIT_TESTEE;
 /
 BEGIN
-  PUNIT_TESTING.run_tests('PUNIT_TESTEE', raise_on_fail => false);
+  PUNIT_RUNNER.run_tests('PUNIT_TESTEE', raise_on_fail => false);
 END;
 /

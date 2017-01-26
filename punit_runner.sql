@@ -17,14 +17,19 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
       	RETURN to_char(diff / 100, 'FM990.00');
     END to_hundreds_of_second;
 
-	PROCEDURE print_results(results result_type, is_suite BOOLEAN) IS
+	PROCEDURE initialize_results(results OUT result_type) IS
+	BEGIN
+		results('run') := 0;
+		results('passed') := 0;
+		results('failed') := 0;
+		results('errored') := 0;
+		results('skipped') := 0;
+	END initialize_results;
+
+	PROCEDURE print_results(results result_type) IS
 	BEGIN
 		DBMS_OUTPUT.put_line(chr(13));
-		IF is_suite THEN
-			DBMS_OUTPUT.put_line('Suite Results');
-			DBMS_OUTPUT.put_line('--------------------------------------------------------');
-		END IF;
-		DBMS_OUTPUT.put_line('Tests Run: ' || results('run') || ', '
+		DBMS_OUTPUT.put_line('Run: ' || results('run') || ', '
 								|| 'Passed: ' || results('passed') || ', '
 								|| 'Failures: ' || results('failed') || ', '
 								|| 'Errors: ' || results('errored') || ', '
@@ -59,11 +64,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 
 		start_time TIMESTAMP := systimestamp;
     BEGIN
-		results('run') := 0;
-		results('passed') := 0;
-		results('failed') := 0;
-		results('errored') := 0;
-		results('skipped') := 0;
+		initialize_results(results);
 		
 		DBMS_OUTPUT.put_line(chr(13));
 		run_fixture(package_name, 'SETUP');
@@ -76,7 +77,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 		END LOOP;
 		run_fixture(package_name, 'TEARDOWN');
 		
-		print_results(results, false);
+		print_results(results);
 		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
 
 		RETURN results;
@@ -94,11 +95,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 
 		start_time TIMESTAMP := systimestamp;
 	BEGIN
-		suite_results('run') := 0;
-		suite_results('passed') := 0;
-		suite_results('failed') := 0;
-		suite_results('errored') := 0;
-		suite_results('skipped') := 0;
+		initialize_results(suite_results);
 
     	FOR i IN suite_of_tests.FIRST .. suite_of_tests.LAST LOOP
 			test_results := run_tests(suite_of_tests(i), raise_on_fail);
@@ -108,8 +105,8 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 			suite_results('errored') := suite_results('errored') + test_results('errored');
 			suite_results('skipped') := suite_results('skipped') + test_results('skipped');
     	END LOOP;
-
-		print_results(suite_results, true);
+		
+		print_results(suite_results);
 		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time));
 	END run_suite;
 

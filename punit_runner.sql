@@ -67,17 +67,17 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 		initialize_results(results);
 		
 		DBMS_OUTPUT.put_line(chr(13));
-		run_fixture(package_name, 'SETUP');
+		run_fixture(package_name, 'SETUP_PACKAGE');
 
 		DBMS_OUTPUT.put_line('Running ' || package_name);
 		FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
-			run_fixture(package_name, 'SETUP_TEST');
+			run_fixture(package_name, 'SETUP');
 			results('run') := results('run') + 1;
 			test_result := PUNIT_TEST.run_test(package_name, p.procedure_name, raise_on_fail);
 			results(test_result) := results(test_result) + 1;
-			run_fixture(package_name, 'TEARDOWN_TEST');
+			run_fixture(package_name, 'TEARDOWN');
 		END LOOP;
-		run_fixture(package_name, 'TEARDOWN');
+		run_fixture(package_name, 'TEARDOWN_PACKAGE');
 		
 		print_results(results);
 		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);

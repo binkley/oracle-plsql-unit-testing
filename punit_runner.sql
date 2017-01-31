@@ -7,6 +7,8 @@ END PUNIT_RUNNER;
 /
 
 CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
+	fixture_exception EXCEPTION; PRAGMA EXCEPTION_INIT(fixture_exception, -20103);
+
 	TYPE result_type IS TABLE OF INT INDEX BY VARCHAR2(15);
 
     FUNCTION to_hundreds_of_second(newer timestamp, older timestamp) RETURN string IS
@@ -48,10 +50,8 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 		END;
 
 		fixture_procedure := package_name || '.' || fixture_name;
-		DBMS_OUTPUT.put_line('Running ' || fixture_procedure);
 		BEGIN
 			EXECUTE IMMEDIATE 'BEGIN ' || fixture_procedure || '; END;';
-			DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || fixture_procedure || ' finished running.');
 		EXCEPTION
 		WHEN OTHERS THEN
 			raise_application_error(-20103, fixture_type || ' failed to complete');
@@ -71,9 +71,11 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 
 		DBMS_OUTPUT.put_line('Running ' || package_name);
 		FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
+			run_fixture(package_name, 'SETUP_TEST');
 			results('run') := results('run') + 1;
 			test_result := PUNIT_TEST.run_test(package_name, p.procedure_name, raise_on_fail);
 			results(test_result) := results(test_result) + 1;
+			run_fixture(package_name, 'TEARDOWN_TEST');
 		END LOOP;
 		run_fixture(package_name, 'TEARDOWN');
 		

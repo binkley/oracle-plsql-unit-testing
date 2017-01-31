@@ -1,6 +1,8 @@
 CREATE OR REPLACE PACKAGE SAMPLE_TEST IS
     PROCEDURE setup;
     PROCEDURE teardown;
+    PROCEDURE setup_test;
+    PROCEDURE teardown_test;
     PROCEDURE test_two_equals_two;
     PROCEDURE test_null_is_null;
     PROCEDURE test_not_null_is_not_null;
@@ -18,6 +20,16 @@ CREATE OR REPLACE PACKAGE BODY SAMPLE_TEST IS
     BEGIN
 		DBMS_OUTPUT.put_line('TEARDOWN got executed.');
     END teardown;
+
+    PROCEDURE setup_test IS
+    BEGIN
+        DBMS_OUTPUT.put_line('SETUP TEST got executed');
+    END setup_test;
+
+    PROCEDURE teardown_test IS
+    BEGIN
+        DBMS_OUTPUT.put_line('TEARDOWN TEST got executed');
+    END teardown_test;
 
     PROCEDURE test_two_equals_two IS
     BEGIN

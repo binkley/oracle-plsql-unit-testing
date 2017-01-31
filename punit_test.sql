@@ -7,7 +7,6 @@ END PUNIT_TEST;
 CREATE OR REPLACE PACKAGE BODY PUNIT_TEST IS
     assertion_error EXCEPTION; PRAGMA EXCEPTION_INIT(assertion_error, -20101);
     disabled_test EXCEPTION; PRAGMA EXCEPTION_INIT(disabled_test, -20102);
-    fixture_exception EXCEPTION; PRAGMA EXCEPTION_INIT(fixture_exception, -20103);
 
     PROCEDURE disable_test(reason string) IS
 	BEGIN

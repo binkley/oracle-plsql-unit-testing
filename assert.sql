@@ -31,7 +31,7 @@ CREATE OR REPLACE PACKAGE BODY ASSERT IS
             RETURN;
         END IF;
       
-        raise_application_error(-20101, 'expected: ' || expected || 'to equal actual: ' || actual );
+        raise_application_error(-20101, 'expected: ' || expected || ' to equal actual: ' || actual );
     END equals;
 
     PROCEDURE not_equals(expected VARCHAR2, actual VARCHAR2) IS

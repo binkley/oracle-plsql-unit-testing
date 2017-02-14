@@ -26,42 +26,53 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 		results('errored') := 0;
 		results('skipped') := 0;
 	END initialize_results;
-
-	PROCEDURE print_results(results result_type) IS
+	
+	FUNCTION get_results_summary(results result_type) RETURN VARCHAR2 IS
+		results_summary VARCHAR2(4000);
 	BEGIN
-		DBMS_OUTPUT.put_line(chr(13));
-		DBMS_OUTPUT.put_line('Run: ' || results('run') || ', '
+		results_summary := 'Run: ' || results('run') || ', '
 								|| 'Passed: ' || results('passed') || ', '
 								|| 'Failures: ' || results('failed') || ', '
 								|| 'Errors: ' || results('errored') || ', '
-								|| 'Skipped: ' || results('skipped'));
+								|| 'Skipped: ' || results('skipped');
+    return results_summary;
+	END get_results_summary;
+
+	PROCEDURE print_results(results result_type) IS
+	BEGIN
+		DBMS_OUTPUT.put_line(chr(13) || get_results_summary(results));
 	END print_results;
 
-    FUNCTION run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail BOOLEAN) RETURN result_type IS
-		results result_type;
-		test_result VARCHAR2(10);
-
-		start_time TIMESTAMP := systimestamp;
+    FUNCTION run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail BOOLEAN) RETURN result_type 
+    IS
+      results result_type;
+      test_result VARCHAR2(10);
+      results_summary varchar2(4000);
+      start_time TIMESTAMP := systimestamp;
     BEGIN
 		initialize_results(results);
 		
 		DBMS_OUTPUT.put_line(chr(13));
 		PUNIT_FIXTURE.setup_package(package_name);
-
+		
 		DBMS_OUTPUT.put_line('Running ' || package_name);
 		FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
-			PUNIT_FIXTURE.setup(package_name);
-			results('run') := results('run') + 1;
-			test_result := PUNIT_TEST.run_test(package_name, p.procedure_name, raise_on_fail);
-			results(test_result) := results(test_result) + 1;
-			PUNIT_FIXTURE.teardown(package_name);
-		END LOOP;
-		PUNIT_FIXTURE.teardown_package(package_name);
-		
-		print_results(results);
-		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
-
-		RETURN results;
+        	PUNIT_FIXTURE.setup(package_name);
+        	results('run') := results('run') + 1;
+        	test_result := PUNIT_TEST.run_test(package_name, p.procedure_name, raise_on_fail);
+        	results(test_result) := results(test_result) + 1;
+        	PUNIT_FIXTURE.teardown(package_name);
+      	END LOOP;
+      	PUNIT_FIXTURE.teardown_package(package_name);
+      	IF (results('run') != results('passed')) THEN
+        	results_summary := get_results_summary(results);
+        	DBMS_OUTPUT.put_line('results_summary = '||results_summary);
+        	raise_application_error(-20101,	results_summary );   
+      	END IF;
+      	print_results(results);
+      	DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
+  
+      	RETURN results;
     END run_tests;
 
 	PROCEDURE run_tests(package_name ALL_OBJECTS.object_name%TYPE, raise_on_fail BOOLEAN) IS
@@ -86,7 +97,7 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
 			suite_results('errored') := suite_results('errored') + test_results('errored');
 			suite_results('skipped') := suite_results('skipped') + test_results('skipped');
     	END LOOP;
-		
+
 		print_results(suite_results);
 		DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time));
 	END run_suite;

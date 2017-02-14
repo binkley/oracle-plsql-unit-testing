@@ -1,16 +1,14 @@
 CREATE OR REPLACE PACKAGE PUNIT_FIXTURE IS
-    PROCEDURE setup(package_name ALL_OBJECTS.object_name%TYPE);
+    FUNCTION setup(package_name ALL_OBJECTS.object_name%TYPE) RETURN BOOLEAN;
     PROCEDURE teardown(package_name ALL_OBJECTS.object_name%TYPE);
-    PROCEDURE setup_package(package_name ALL_OBJECTS.object_name%TYPE);
+    FUNCTION setup_package(package_name ALL_OBJECTS.object_name%TYPE) RETURN BOOLEAN;
     PROCEDURE teardown_package(package_name ALL_OBJECTS.object_name%TYPE);
 END PUNIT_FIXTURE;
 /
 
 CREATE OR REPLACE PACKAGE BODY PUNIT_FIXTURE IS
 
-    fixture_exception EXCEPTION; PRAGMA EXCEPTION_INIT(fixture_exception, -20103);
-
-    PROCEDURE run_fixture(package_name ALL_OBJECTS.object_name%TYPE, fixture_type VARCHAR2) IS
+    FUNCTION run_fixture(package_name ALL_OBJECTS.object_name%TYPE, fixture_type VARCHAR2) RETURN BOOLEAN IS
 		fixture_name ALL_PROCEDURES.procedure_name%TYPE;
 		fixture_procedure VARCHAR(100);
 	BEGIN
@@ -18,7 +16,8 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_FIXTURE IS
 			SELECT procedure_name INTO fixture_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name = fixture_type;
 		EXCEPTION
 		WHEN NO_DATA_FOUND THEN
-			RETURN;
+            DBMS_OUTPUT.put_line(fixture_type || ' not available. No need to run');
+			RETURN TRUE;
 		END;
 
 		fixture_procedure := package_name || '.' || fixture_name;
@@ -26,28 +25,39 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_FIXTURE IS
 			EXECUTE IMMEDIATE 'BEGIN ' || fixture_procedure || '; END;';
 		EXCEPTION
 		WHEN OTHERS THEN
-			raise_application_error(-20103, fixture_type || ' failed to complete');
+            DBMS_OUTPUT.put_line(fixture_type || ' failed to complete: ' || SQLCODE || SQLERRM);
+            -- Cannot use the superior UTL_CALL_STACK package: 12c vs 11c
+			-- Not put_line: backtrace already ends in a newline
+            DBMS_OUTPUT.put(DBMS_UTILITY.format_error_backtrace());
+            RETURN FALSE;
 		END;
+        RETURN TRUE;
 	END run_fixture;
 
-    PROCEDURE setup(package_name ALL_OBJECTS.object_name%TYPE) IS
+    FUNCTION setup(package_name ALL_OBJECTS.object_name%TYPE) RETURN BOOLEAN IS
+        result BOOLEAN;
     BEGIN
-        run_fixture(package_name, 'SETUP');
+        result := run_fixture(package_name, 'SETUP');
+        RETURN result;
     END setup;
 
-    PROCEDURE setup_package(package_name ALL_OBJECTS.object_name%TYPE) IS
+    FUNCTION setup_package(package_name ALL_OBJECTS.object_name%TYPE) RETURN BOOLEAN IS
+        result BOOLEAN;
     BEGIN
-        run_fixture(package_name, 'SETUP_PACKAGE');
+        result := run_fixture(package_name, 'SETUP_PACKAGE');
+        RETURN result;
     END setup_package;
 
     PROCEDURE teardown(package_name ALL_OBJECTS.object_name%TYPE) IS
+        result BOOLEAN;
     BEGIN
-        run_fixture(package_name, 'TEARDOWN');
+        result := run_fixture(package_name, 'TEARDOWN');
     END teardown;
 
     PROCEDURE teardown_package(package_name ALL_OBJECTS.object_name%TYPE) IS
+        result BOOLEAN;
     BEGIN
-        run_fixture(package_name, 'TEARDOWN_PACKAGE');
+        result := run_fixture(package_name, 'TEARDOWN_PACKAGE');
     END teardown_package;
 
 END PUNIT_FIXTURE;

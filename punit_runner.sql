@@ -47,31 +47,38 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_RUNNER IS
     IS
       results result_type;
       test_result VARCHAR2(10);
-      results_summary varchar2(4000);
+      results_summary VARCHAR2(4000);
       start_time TIMESTAMP := systimestamp;
+
+	  package_fixture_pass BOOLEAN := FALSE;
+	  test_fixture_pass BOOLEAN := FALSE;
     BEGIN
 		initialize_results(results);
 		
 		DBMS_OUTPUT.put_line(chr(13));
-		PUNIT_FIXTURE.setup_package(package_name);
-		
-		DBMS_OUTPUT.put_line('Running ' || package_name);
-		FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
-        	PUNIT_FIXTURE.setup(package_name);
-        	results('run') := results('run') + 1;
-        	test_result := PUNIT_TEST.run_test(package_name, p.procedure_name, raise_on_fail);
-        	results(test_result) := results(test_result) + 1;
-        	PUNIT_FIXTURE.teardown(package_name);
-      	END LOOP;
+		package_fixture_pass := PUNIT_FIXTURE.setup_package(package_name);
+		IF (package_fixture_pass) THEN
+			DBMS_OUTPUT.put_line('Running ' || package_name);
+			FOR p IN (SELECT procedure_name FROM ALL_PROCEDURES WHERE object_name = package_name AND procedure_name LIKE 'TEST_%') LOOP
+        		test_fixture_pass := PUNIT_FIXTURE.setup(package_name);
+				IF (test_fixture_pass) THEN
+        			results('run') := results('run') + 1;
+        			test_result := PUNIT_TEST.run_test(package_name, p.procedure_name, raise_on_fail);
+        			results(test_result) := results(test_result) + 1;
+				END IF;
+        		PUNIT_FIXTURE.teardown(package_name);
+      		END LOOP;
+		END IF;
       	PUNIT_FIXTURE.teardown_package(package_name);
+		
+		results_summary := get_results_summary(results);
+		DBMS_OUTPUT.put_line('results_summary = ' || results_summary); 
       	IF (results('run') != results('passed')) THEN
-        	results_summary := get_results_summary(results);
-        	DBMS_OUTPUT.put_line('results_summary = '||results_summary);
-        	raise_application_error(-20101,	results_summary );   
+        	raise_application_error(-20101,	results_summary);   
       	END IF;
       	print_results(results);
+
       	DBMS_OUTPUT.put_line('Elapsed Time: ' || to_hundreds_of_second(systimestamp, start_time) || ' sec - in ' || package_name);
-  
       	RETURN results;
     END run_tests;
 

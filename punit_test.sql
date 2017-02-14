@@ -19,23 +19,23 @@ CREATE OR REPLACE PACKAGE BODY PUNIT_TEST IS
 		testee := package_name || '.' || procedure_name;
 		BEGIN
 			EXECUTE IMMEDIATE 'BEGIN ' || testee || '; END;';
-			DBMS_OUTPUT.put_line(unistr('\2713') || ' ' || testee || ' passed.');
+			DBMS_OUTPUT.put_line(unistr('+') || ' ' || testee || ' passed.');
 			RETURN 'passed';
 		EXCEPTION
 		WHEN disabled_test THEN
-			DBMS_OUTPUT.put_line('- ' || testee || ' skipped: ' || SQLERRM);
+			DBMS_OUTPUT.put_line('? ' || testee || ' skipped: ' || SQLERRM);
 			RETURN 'skipped';
 		WHEN assertion_error THEN
 			IF (raise_on_fail) THEN
 				RAISE;
 			END IF;
-			DBMS_OUTPUT.put_line(unistr('\2717') || ' ' || testee || ' failed: ' || SQLERRM);
+			DBMS_OUTPUT.put_line(unistr('-') || ' ' || testee || ' failed: ' || SQLERRM);
 			RETURN 'failed';
 		WHEN OTHERS THEN
 			IF (raise_on_fail) THEN
 				RAISE;
 			END IF;
-			DBMS_OUTPUT.put_line('? ' || testee || ' errored: ' || SQLERRM);
+			DBMS_OUTPUT.put_line('x ' || testee || ' errored: ' || SQLERRM);
 			-- Cannot use the superior UTL_CALL_STACK package: 12c vs 11c
 			-- Not put_line: backtrace already ends in a newline
 			DBMS_OUTPUT.put(DBMS_UTILITY.format_error_backtrace());

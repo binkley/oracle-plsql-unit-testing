@@ -73,10 +73,10 @@ Running PUNIT_TESTEE
 TEST_FAIL failed: ORA-20101: Expected: 3; got: 2 at PUNIT_TESTEE#l18: PUNIT_TESTING.assert_equals(3, Do_It(2));
 TEST_PASS passed.
 TEST_ERROR errored: ORA-06501: PL/SQL: program error
-ORA-06512: at "SWMS.PUNIT_TESTEE", line 6
-ORA-06512: at "SWMS.PUNIT_TESTEE", line 23
+ORA-06512: at "YOUR_PKG.PUNIT_TESTEE", line 6
+ORA-06512: at "YOUR_PKG.PUNIT_TESTEE", line 23
 ORA-06512: at line 1
-ORA-06512: at "SWMS.PUNIT_TESTING", line 39
+ORA-06512: at "YOUR_PKG.PUNIT_TESTING", line 39
 
 Tests run: 3, Failures: 1, Errors: 1, Skipped: 0, Time elapsed: 0.20 sec - in PUNIT_TESTEE
 ```

@@ -27,7 +27,7 @@ printed in the style of maven tests.
 Unit tests should have no dependencies on each other, nor any implicit
 ordering.  They may be run in any order.
 
-See [`punit_testing.sql`](punit_testing.sql) for this package.
+See [`punit_test.sql`](punit_test.sql) for this package.
 
 ### Variation
 

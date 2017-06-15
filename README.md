@@ -54,7 +54,7 @@ Use like this:
 -- In MY_PACKAGE
   PROCEDURE TEST_something IS
     BEGIN
-        PUNIT_TEST.assert_equals(3, some_function());
+        PUNIT_TEST.assert_equals(3, some_function(2));
     END TEST_something;
 ```
 
@@ -70,7 +70,7 @@ Example output from `PUNIT_TESTEE`:
 
 ```
 Running PUNIT_TESTEE
-TEST_FAIL failed: ORA-20101: Expected: 3; got: 2 at PUNIT_TESTEE#l18: PUNIT_TEST.assert_equals(3, Do_It(2));
+TEST_FAIL failed: ORA-20101: Expected: 3; got: 2 at PUNIT_TESTEE#l18: PUNIT_TEST.assert_equals(3, some_function(2));
 TEST_PASS passed.
 TEST_ERROR errored: ORA-06501: PL/SQL: program error
 ORA-06512: at "MY_PACKAGE.PUNIT_TESTEE", line 6

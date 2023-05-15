@@ -17,7 +17,7 @@ constructs a suitable message.
 
 Running tests finds and calls all procedures that start with `TEST_` in a
 given package, recording which pass (do not raise the custom exception), which
-fail (do raise the custom exception), and which error (raise any other
+fail (do raise the custom exception), and which error (raises any other
 exception).
 
 Failed assertions show the line of code which failed.  Errored tests print a

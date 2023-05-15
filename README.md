@@ -13,7 +13,7 @@ package provides exactly TWO procedures:
 - `PUNIT_TEST.run_tests(package_name STRING)`
 
 Testing assertions raise a custom exception when they fail (code -20101), and
-construct a suitable message.
+constructs a suitable message.
 
 Running tests finds and calls all procedures that start with `TEST_` in a
 given package, recording which pass (do not raise the custom exception), which

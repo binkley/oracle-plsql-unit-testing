@@ -4,6 +4,11 @@ xUnit testing for Oracle PL/SQL
 
 This software is in the Public Domain.  Please see [LICENSE.md](LICENSE.md).
 
+_Note:_ I do not have a personal Oracle license, so this repository will be
+out of date.
+However, the general principles&mdash;if not the details&mdash;are useful for
+writing unit tests for stored procedures.
+
 ## What is it?
 
 Following the principle of the "least thing that could possibly work", this

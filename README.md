@@ -27,7 +27,8 @@ exception).
 
 Failed assertions show the line of code which failed.  Errored tests print a
 backtrace (`DBMS_UTILITY.format_error_backtrace()`).  At the end a summary is
-printed in the style of maven tests.
+printed in the style of Java Maven tests (you should customize to fit your
+preferences).
 
 Unit tests should have no dependencies on each other, nor any implicit
 ordering.  They may be run in any order.

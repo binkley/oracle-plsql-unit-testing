@@ -41,10 +41,10 @@ There is a variation of `PUNIT_TEST.run_tests(package_name STRING)`:
 
 - `PUNIT_TEST.run_tests(package_name STRING, boolean die_if_failed DEFAULT true)`
 
-It is a workaround for Oracle discarding output if any part or subpart of a
-program does not complete normally.  Regular behavior of `run_tests` is to
-reraise any exception or test failure so that compilation of tested code
-fails.  This lets failing tests keep bad code out of the database.
+It is a workaround for my version of Oracle discarding output if any part or
+subpart of a program does not complete normally.  Regular behavior of
+`run_tests` is to reraise any exception or test failure so that compilation of
+tested code fails. This lets failing tests keep bad code out of the database.
 
 However, finding what tests failed is challenging.  In that case, set
 `die_if_failed` to `false` to see which test(s) failed.  An alternative
